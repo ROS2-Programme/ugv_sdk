@@ -17,7 +17,7 @@
 #include <thread>
 #include <functional>
 
-#include "asio.hpp"
+#include "boost/asio.hpp"
 
 #include "ugv_sdk/details/async_port/ring_buffer.hpp"
 
@@ -51,14 +51,14 @@ class AsyncSerial : public std::enable_shared_from_this<AsyncSerial> {
   bool port_opened_ = false;
 
 #if ASIO_VERSION < 101200L
-  asio::io_service io_context_;
+  boost::asio::io_service io_context_;
 #else
-  asio::io_context io_context_;
+  boost::asio::io_context io_context_;
 #endif
   std::thread io_thread_;
 
   // serial port
-  asio::serial_port serial_port_;
+  boost::asio::serial_port serial_port_;
   uint32_t baud_rate_ = 115200;
   bool hwflow_ = false;
   ReceiveCallback rcv_cb_ = nullptr;

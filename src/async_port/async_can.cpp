@@ -103,11 +103,11 @@ void AsyncCAN::DefaultReceiveCallback(can_frame *rx_frame) {
 }
 
 void AsyncCAN::ReadFromPort(struct can_frame &rec_frame,
-                            asio::posix::basic_stream_descriptor<> &stream) {
+                            boost::asio::posix::stream_descriptor &stream) {
   auto sthis = shared_from_this();
   stream.async_read_some(
-      asio::buffer(&rec_frame, sizeof(rec_frame)),
-      [sthis](asio::error_code error, size_t bytes_transferred) {
+      boost::asio::buffer(&rec_frame, sizeof(rec_frame)),
+      [sthis](boost::system::error_code error, size_t bytes_transferred) {
         if (error) {
           sthis->Close();
           return;
@@ -125,8 +125,8 @@ void AsyncCAN::ReadFromPort(struct can_frame &rec_frame,
 
 void AsyncCAN::SendFrame(const struct can_frame &frame) {
   socketcan_stream_.async_write_some(
-      asio::buffer(&frame, sizeof(frame)),
-      [](asio::error_code error, size_t bytes_transferred) {
+      boost::asio::buffer(&frame, sizeof(frame)),
+      [](boost::system::error_code error, size_t bytes_transferred) {
         if (error) {
           std::cerr << "Failed to send CAN frame" << std::endl;
         }

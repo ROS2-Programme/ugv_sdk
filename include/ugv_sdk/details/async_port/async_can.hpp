@@ -21,8 +21,8 @@
 #include <thread>
 #include <functional>
 
-#include "asio.hpp"
-#include "asio/posix/basic_stream_descriptor.hpp"
+#include "boost/asio.hpp"
+#include "boost/asio/posix/basic_stream_descriptor.hpp"
 
 namespace westonrobot {
 class AsyncCAN : public std::enable_shared_from_this<AsyncCAN> {
@@ -50,22 +50,22 @@ class AsyncCAN : public std::enable_shared_from_this<AsyncCAN> {
   std::atomic<bool> port_opened_{false};
 
 #if ASIO_VERSION < 101200L
-  asio::io_service io_context_;
+  boost::asio::io_service io_context_;
 #else
-  asio::io_context io_context_;
+  boost::asio::io_context io_context_;
 #endif
 
   std::thread io_thread_;
 
   int can_fd_;
-  asio::posix::basic_stream_descriptor<> socketcan_stream_;
+  boost::asio::posix::stream_descriptor socketcan_stream_;
 
   struct can_frame rcv_frame_;
   ReceiveCallback rcv_cb_ = nullptr;
 
   void DefaultReceiveCallback(can_frame *rx_frame);
   void ReadFromPort(struct can_frame &rec_frame,
-                    asio::posix::basic_stream_descriptor<> &stream);
+                    boost::asio::posix::stream_descriptor &stream);
 };
 }  // namespace westonrobot
 

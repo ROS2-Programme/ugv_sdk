@@ -24,13 +24,13 @@ AsyncSerial::AsyncSerial(std::string port_name, uint32_t baud_rate)
 AsyncSerial::~AsyncSerial() { Close(); }
 
 void AsyncSerial::SetBaudRate(unsigned baudrate) {
-  serial_port_.set_option(asio::serial_port_base::baud_rate(baudrate));
+  serial_port_.set_option(boost::asio::serial_port_base::baud_rate(baudrate));
 }
 
 void AsyncSerial::SetHardwareFlowControl(bool enabled) { hwflow_ = enabled; }
 
 bool AsyncSerial::Open() {
-  using SPB = asio::serial_port_base;
+  using SPB = boost::asio::serial_port_base;
 
   try {
     serial_port_.open(port_);
@@ -66,7 +66,7 @@ bool AsyncSerial::Open() {
 #if ASIO_VERSION < 101200L
   io_context_.post(std::bind(&AsyncSerial::ReadFromPort, this));
 #else
-  asio::post(io_context_, std::bind(&AsyncSerial::ReadFromPort, this));
+  boost::asio::post(io_context_, std::bind(&AsyncSerial::ReadFromPort, this));
 #endif
 
   // start io thread
@@ -96,8 +96,8 @@ void AsyncSerial::DefaultReceiveCallback(uint8_t *data, const size_t bufsize,
 void AsyncSerial::ReadFromPort() {
   auto sthis = shared_from_this();
   serial_port_.async_read_some(
-      asio::buffer(rx_buf_),
-      [sthis](asio::error_code error, size_t bytes_transferred) {
+      boost::asio::buffer(rx_buf_),
+      [sthis](boost::system::error_code error, size_t bytes_transferred) {
         if (error) {
           sthis->Close();
           return;
@@ -125,8 +125,8 @@ void AsyncSerial::WriteToPort(bool check_if_busy) {
   tx_in_progress_ = true;
   auto len = tx_rbuf_.Read(tx_buf_, tx_rbuf_.GetOccupiedSize());
   serial_port_.async_write_some(
-      asio::buffer(tx_buf_, len),
-      [sthis](asio::error_code error, size_t bytes_transferred) {
+      boost::asio::buffer(tx_buf_, len),
+      [sthis](boost::system::error_code error, size_t bytes_transferred) {
         if (error) {
           sthis->Close();
           return;
