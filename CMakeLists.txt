@@ -14,7 +14,7 @@ option(STATIC_CHECK "Run static check" OFF)
 # set(CMAKE_BUILD_TYPE Debug)
 
 ## Check if pkg is built with ROS catkin
-if(CATKIN_DEVEL_PREFIX)
+if("$ENV{ROS_VERSION}" STREQUAL "1")
     message(STATUS "Build package with catkin")
     set(BUILD_WITHOUT_ROS OFF)
     find_package(catkin REQUIRED)
@@ -24,6 +24,14 @@ if(CATKIN_DEVEL_PREFIX)
         # CATKIN_DEPENDS async_port
         # DEPENDS system_lib
     )
+elseif("$ENV{ROS_VERSION}" STREQUAL "2")
+    set(BUILD_WITHOUT_ROS OFF)
+    find_package(ament_cmake REQUIRED)
+
+    include_directories(
+        include
+    )
+
 else()
     message(STATUS "Build package with cmake")
     set(BUILD_WITHOUT_ROS ON)    
@@ -86,7 +94,7 @@ endif()
 find_package(Threads REQUIRED)
 
 # add sdk main library
-add_library(${PROJECT_NAME}
+add_library(${PROJECT_NAME} SHARED
     ########################
     ## async_port from weston robot
     src/async_port/async_serial.cpp
@@ -193,14 +201,34 @@ if(BUILD_WITHOUT_ROS) # BUILD_WITHOUT_ROS
     include(CPack)
 
 else() # BUILD_WITHOUT_ROS
+    if("$ENV{ROS_VERSION}" STREQUAL "1")
+        ## Add catkin install targets
+        install(TARGETS ${PROJECT_NAME}
+        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
 
-    ## Add catkin install targets
-    install(TARGETS ${PROJECT_NAME}
-      RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-      LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-      ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
+        install(DIRECTORY include/${PROJECT_NAME}
+        DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION})
+    elseif("$ENV{ROS_VERSION}" STREQUAL "2")
 
-    install(DIRECTORY include/${PROJECT_NAME}
-      DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION})
+        install(
+            DIRECTORY include/
+            DESTINATION include
+        )
+        
+        install(
+            TARGETS ${PROJECT_NAME}
+            EXPORT ${PROJECT_NAME}
+            LIBRARY DESTINATION lib
+            ARCHIVE DESTINATION lib
+            RUNTIME DESTINATION bin
+        )
+
+        ament_export_include_directories(include)
+        ament_export_libraries(${PROJECT_NAME})
+
+        ament_package()
+    endif()
 
 endif() # BUILD_WITHOUT_ROS
