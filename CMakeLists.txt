@@ -212,14 +212,13 @@ else() # BUILD_WITHOUT_ROS
         DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION})
     elseif("$ENV{ROS_VERSION}" STREQUAL "2")
 
-        install(
-            DIRECTORY include/
-            DESTINATION include
+        install(DIRECTORY include/${PROJECT_NAME}/
+            DESTINATION include/${PROJECT_NAME}
         )
         
         install(
             TARGETS ${PROJECT_NAME}
-            EXPORT ${PROJECT_NAME}
+            EXPORT export_${PROJECT_NAME}
             LIBRARY DESTINATION lib
             ARCHIVE DESTINATION lib
             RUNTIME DESTINATION bin
@@ -227,6 +226,8 @@ else() # BUILD_WITHOUT_ROS
 
         ament_export_include_directories(include)
         ament_export_libraries(${PROJECT_NAME})
+        ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
+        # ament_export_dependencies(${dependencies})
 
         ament_package()
     endif()
